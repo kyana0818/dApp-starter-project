@@ -1,14 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import './App.css';
-import { Contract, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import abi from './utils/WavePortal.json';
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState('');
   const [messageValue, setMessageValue] = useState('');
   const [allWaves, setAllWaves] = useState([]);
-  console.log('currentAccount:', currentAccount);
-  const contractAddress = '0x539722593d3c334C338b9013D06B0A9e3f9647c6';
+  const [jackpotValue, setJackpotValue] = useState(0);
+  const [betAmount, setBetAmount] = useState(0);
+  const contractAddress = '0xA2077381D38ACAfe965dB6c693343d61F3825ecF';
   const contractABI = abi.abi;
 
   const getAllWaves = async () => {
@@ -38,37 +39,83 @@ const App = () => {
     }
   };
 
-  useEffect(() => {
-    let wavePortalContract;
-    const {ethereum} = window;
+  const getJackpot = async () => {
+      const {ethereum} = window;
 
-    const onNewWave = (from, timestamp, message) => {
-      console.log('NewWave', from, timestamp, message);
-      setAllWaves(prevState => [
-        ...prevState,
-        {
-          address: from,
-          timestamp: new Date(timestamp * 1000),
-          message: message,
-        }
-      ]);
+      try {
+          if (ethereum) {
+              const provider = new ethers.providers.Web3Provider(ethereum);
+              const signer = provider.getSigner();
+              const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+              const jackpot = await wavePortalContract.getJackpot();
 
-    };
-
-    if (ethereum) {
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
-
-      wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
-      wavePortalContract.on('NewWave', onNewWave);
-    }
-
-    return () => {
-      if (wavePortalContract) {
-        wavePortalContract.off('NewWave', onNewWave);
+              setJackpotValue(ethers.utils.formatEther(jackpot));
+          } else {
+            console.log(`Ethereum object doesn't exist!`);
+          }
+      } catch (error) {
+          console.log(error);
       }
-    };
+  };
+
+  useEffect(() => {
+      let wavePortalContract;
+      const {ethereum} = window;
+
+      const onJackpot = (from, jackpotV, result) => {
+          console.log('Jackpot value:', jackpotV);
+          console.log('Win:', result);
+          setJackpotValue(ethers.utils.formatEther(jackpotV));
+      }
+
+      if (ethereum) {
+          const provider = new ethers.providers.Web3Provider(ethereum);
+          const signer = provider.getSigner();
+          
+
+          wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+          wavePortalContract.on('Jackpot', onJackpot);
+      }
+
+      return () => {
+        if (wavePortalContract) {
+            wavePortalContract.on('Jackpot', onJackpot);
+        }
+      };
+
   }, []);
+
+//   useEffect(() => {
+//     let wavePortalContract;
+//     const {ethereum} = window;
+
+//     const onNewWave = (from, timestamp, message) => {
+//       console.log('NewWave', from, timestamp, message);
+//       setAllWaves(prevState => [
+//         ...prevState,
+//         {
+//           address: from,
+//           timestamp: new Date(timestamp * 1000),
+//           message: message,
+//         }
+//       ]);
+
+//     };
+
+//     if (ethereum) {
+//       const provider = new ethers.providers.Web3Provider(ethereum);
+//       const signer = provider.getSigner();
+
+//       wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+//       wavePortalContract.on('NewWave', onNewWave);
+//     }
+
+//     return () => {
+//       if (wavePortalContract) {
+//         wavePortalContract.off('NewWave', onNewWave);
+//       }
+//     };
+//   }, []);
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -84,6 +131,7 @@ const App = () => {
         console.log('Found an authorized account:', ethereum);
         setCurrentAccount(account);
         getAllWaves();
+        getJackpot();
       } else {
         console.log('No authorized account found');
       }
@@ -152,6 +200,31 @@ const App = () => {
     }
   }
 
+  const jackpot = async (e) => {
+      try {
+          const { ethereum } = window;
+          if (ethereum) {
+            const provider = new ethers.providers.Web3Provider(ethereum);
+            const signer = provider.getSigner();
+            const wavePortalContract = new ethers.Contract(
+              contractAddress,
+              contractABI,
+              signer
+            );
+            const waveTxn = await wavePortalContract.playJackpot({
+                value: ethers.utils.parseEther(betAmount),
+                gasLimit: 300000
+            })
+            console.log('Mining...', waveTxn.hash);
+            await waveTxn.wait();
+            console.log('Mined --', waveTxn.hash);
+          }
+      } catch (error) {
+          console.log(error);
+      }
+    window.aaa = e;
+  }
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
@@ -163,27 +236,59 @@ const App = () => {
           <span role="img" aria-label="hand-wave">👋</span>WELCOME!
         </div>
         <div className="bio">
-          イーサリアムウォレットを接続して、「
-          <span role="img" aria-label="hand-wave">👋</span>
-          (wave)」を送ってください
-          <span role="img" aria-label="shine">✨</span>
+          大量のETH獲得のチャンス！！
         </div>
         {!currentAccount && (
           <button className="waveButton" onClick={connectWallet}>
             Connect Wallet
           </button>
         )}
-        {currentAccount && (
+        <div className="jackpotContainer">
+            <div className="jackpotContent">
+                <div className="jackpotHeader">
+                    <p>JACKPOT</p>
+                </div>
+                <div className="jackpotBody">
+                    <div className="jackpotDisplayArea">
+                        <input className='jackpotDisplay' value={jackpotValue} disabled/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {/* {currentAccount && (
           <button className="waveButton">
             Wallet Connected
           </button>
-        )}
+        )} */}
+        
         {currentAccount && (
-          <button className="waveButton" onClick={wave}>
+          <div className='betArea'>
+            {/* <div className='betAmountContainer'>
+              <input
+                type='number'
+                className='betAmount'
+                value={betAmount}
+                onChange={e => setBetAmount(e.target.value)}
+              />
+            </div> */}
+            
+            <p className='betLaber'>BET:</p>
+            <div className="jackpotDisplayArea betAmountContainer">
+              <input type="number" className='jackpotDisplay betAmount' value={betAmount} onChange={e => setBetAmount(e.target.value)}/>
+            </div>
+            <div className='betSubmitArea'>
+              <button onClick={jackpot} className='jackpotButton'>ジャックポット！！！</button>
+            </div>
+          </div>
+        )}
+        
+        {/* {currentAccount && (
+          <button className="waveButton" onClick={jackpot}>
             Wave to Me
           </button>
         )}
         {currentAccount && (
+
           <textarea
             name="messageArea"
             placeholder="メッセージはこちら"
@@ -206,7 +311,7 @@ const App = () => {
               </div>
             )
           })
-        )}
+        )} */}
       </div>
     </div>
   )

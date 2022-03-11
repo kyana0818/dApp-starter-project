@@ -13,6 +13,7 @@
 }
 
 .header {
+  color: #eec424;
   text-align: center;
   font-size: 32px;
   font-weight: 600;
@@ -31,4 +32,117 @@
   border: 0;
   border-radius: 5px;
   
+}
+
+.jackpotContainer {
+    width: calc(100% - 20px);
+    margin-top: 20px;
+    border-radius: 4vh 4vh 0 0;
+    box-shadow: 0px 0px 10px 5px #eec424;
+    border: solid 10px #eec424;
+    overflow: hidden;
+}
+
+.jackpotContent {
+    background: #222222;
+}
+
+.jackpotHeader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.jackpotHeader > p {
+    padding: 10px 0;
+    color: #eec424;
+    text-shadow: 0px 0px 20px #eec424;
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: .1em;   
+}
+
+.jackpotBody {
+    padding: 20px 20px 10px;
+    box-shadow: 0px 15px 20px 20px #eec424;
+    border-top: solid 10px #eec424;
+}
+
+.jackpotDisplayArea {
+    display: flex;
+    height: 40px;
+    box-shadow: inset 0px 0px 20px 0px #e5e98a;
+    background: #eeeeee;
+    color: #222222;
+}
+
+.jackpotDisplayArea::after {
+    content: "ETH";
+    font-size: 20px;
+    align-self: flex-end;
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+.jackpotDisplay {
+    text-align: right;
+    font-size: 38px;
+    box-sizing: border-box;
+    outline: none;
+    background: none;
+    border: none;
+    height: 100%;
+    flex: 1;
+}
+
+.betArea {
+    display: flex;
+    margin-top: 60px;
+}
+
+.betAmountContainer {
+    width: 50%;
+    height: 100%;
+}
+
+.betLaber {
+    display: flex;
+    align-items: end;
+    color: #eec424;
+    font-size: 20px;
+    font-weight: 700;
+    margin-right: 5px;
+}
+.betAmount {
+    width: 100%;
+}
+
+.betSubmitArea {
+    flex: 1;
+}
+.jackpotButton {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    width:100%;
+    border: none;
+    box-sizing: border-box;
+    outline: none;
+    background: none;
+    color: #eec424;
+    font-weight: 700;
+    font-size: 22px;
+}
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
 }
